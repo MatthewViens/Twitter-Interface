@@ -2402,6 +2402,10 @@ a:hover .app--avatar {
   margin-right: -15px;
   color: #ccc;
 }
+
+.app--message--list {
+  padding-bottom: 195px;
+}
 /* line 203, ../sass/global.sass */
 .app--user--list .button-text:hover {
   color: #a86cc6;
