@@ -1,12 +1,15 @@
-const express = require('express');
+const express = require('express')
 const twit = require('twit');
 const moment = require('moment');
 moment().format();
 const config = require('./config');
 
 const app = express();
+const server = require('http').Server(app);
+const io = require('socket.io').listen(server);
 
 app.use(express.static('public'));
+app.use(express.static('node_modules'))
 
 app.set('view engine', 'pug');
 
@@ -117,6 +120,20 @@ app.get('/', (req, res) => {
     friendsData: req.friendsData,
     messageData: req.messageData
   });
+  io.on('connection', (socket)=> {
+    socket.emit('sendUserData', req.userData);
+    socket.on('tweet', (text)=> {
+      user.post('statuses/update', {status: text})
+        .then((result)=>{
+          io.emit('tweet', text);
+        })
+        .catch((err)=> {
+          err.message = 'There was a problem posting to Twitter';
+          err.status = 500;
+          next(err);
+        });
+    });
+  });
 });
 
 app.use((req, res, next)=> {
@@ -131,6 +148,6 @@ app.use((err, req, res, next)=> {
   res.render('error', err);
 });
 
-app.listen(3000, () => {
+server.listen(3000, () => {
   console.log('Application running on port:3000');
 });
