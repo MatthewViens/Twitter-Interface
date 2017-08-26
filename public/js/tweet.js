@@ -1,19 +1,33 @@
-const form = document.getElementsByTagName('FORM')[0];
-const textArea = document.getElementById('tweet-textarea');
-const count = document.getElementById('tweet-char');
-const timeline = document.querySelector('.app--tweet--list');
-const socket = io();
+/*-------------------------------------------------------------------
+Assign needed elements to variables.
+Delcare max character count for tweets.
+Set up Socket.IO on client.
+-------------------------------------------------------------------*/
 
-let maxCount = 140;
+const form      = document.getElementsByTagName('FORM')[0],
+      textArea  = document.getElementById('tweet-textarea'),
+      count     = document.getElementById('tweet-char'),
+      timeline  = document.querySelector('.app--tweet--list'),
+      maxCount  = 140,
+      socket    = io();
+
+/*-------------------------------------------------------------------
+Keyup event listener on textArea
+- Change count based on number of characters in textArea.
+- If character count exceeds maxCount, change count color.
+-------------------------------------------------------------------*/
 
 textArea.addEventListener('keyup', ()=> {
   count.textContent = Math.abs(maxCount - textArea.value.length);
-  if(textArea.value.length > maxCount){
-    count.style.color = 'red';
-  } else {
-    count.style.color = '#ccc';
-  }
+  textArea.value.length > maxCount ? count.style.color = '#F00' : count.style.color = '#CCC';
 });
+
+/*-------------------------------------------------------------------
+Submit event listener on tweet form
+- Prevent defaul behavior of form submit.
+- Only emit tweet if tweet length is less than max count and is not blank.
+- Reset contents of texArea.
+-------------------------------------------------------------------*/
 
 form.addEventListener('submit', (e)=> {
   e.preventDefault();
@@ -23,20 +37,24 @@ form.addEventListener('submit', (e)=> {
   }
 });
 
+// Receive Twitter account information in preparation for tweets.
 socket.on('sendUserData', (userData)=> {
   socket.userData = userData;
 });
 
+/*-------------------------------------------------------------------
+Tweet event listener
+- Create list element.
+- Use createNewTweet() to fill LI with content.
+- Prepend tweet LI to top of timeline.
+-------------------------------------------------------------------*/
 socket.on('tweet', (text)=> {
   let newTweet = document.createElement('LI');
   newTweet.innerHTML = createTweet(text);
-  console.log(socket.userData.username);
-  console.log(socket.userData.name);
-  console.log(socket.userData.avatarURL);
-  console.log(text);
   timeline.prepend(newTweet);
 });
 
+// Helper function to hold new tweet template.
 function createTweet(text){
   let tweet =`<li>
             <strong class="app--tweet--timestamp">Now</strong>
